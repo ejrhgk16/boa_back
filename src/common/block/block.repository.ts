@@ -8,7 +8,7 @@ export class BlockRepository {
         private readonly dbService : DbService
      ){}
  
-     async getBlockIpList(): Promise<any[]>{
+     async getBlockIpList(): Promise<any[]>{ 
  
          const query = "select id, block_ip, memo, status from boa_block_ip where status = 'Y' "
          const params = [];
