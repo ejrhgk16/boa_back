@@ -6,6 +6,14 @@ import { PagingDto } from "src/common/paging/paging.dto";
 @Injectable()
 export class StoreRepository {
 
+  // status
+  // '01' : {value:'01', text:'대기'},
+  // '02': {value:'02', text:'리콜대기'},
+  // '03': {value:'03', text:'부재'},
+  // '04':{value:'04', text:'예약'},
+  // '05' : {value:'05', text:'무효'}
+  // 99 : 비활성화 - 카운팅, 디비리스트에서 조회 되면안됨
+
     constructor(
         private readonly dbService : DbService
      ){}
@@ -54,7 +62,7 @@ export class StoreRepository {
     
             const query2 = "select bri.*, page_code, page_name, event_num, media_name, event_name from boa_reg_info bri left join (select page_code, page_name, event_num, media_name from boa_page left join boa_media using(media_id)) bp using(page_code) "+
             "left join (select num, event_name from boa_event where store_code = ?)be on be.num = bp.event_num "+
-            "where store_code = ? and (last_update >= DATE_FORMAT(?, '%Y-%m-%d') and last_update <= DATE_FORMAT(? + INTERVAL 1 DAY, '%Y-%m-%d')) "
+            "where store_code = ? and status != '99' and (last_update >= DATE_FORMAT(?, '%Y-%m-%d') and last_update <= DATE_FORMAT(? + INTERVAL 1 DAY, '%Y-%m-%d')) "
             + addQuery + searchQuery + "order by last_update desc limit ?, ?"
         
             const startrow = pagingDto.row_amount * (pagingDto.pageNum -1)
@@ -142,7 +150,7 @@ export class StoreRepository {
       "SELECT '', 0, 0, NULL "+
       "ORDER BY round_num)br "+
       "left join "+
-      "(select round_num, count(*) as count from boa_reg_info where store_code = ? group by round_num)bri using(round_num) "+
+      "(select round_num, count(*) as count from boa_reg_info where store_code = ? and status != '99' group by round_num)bri using(round_num) "+
       "ORDER by CASE WHEN round_num = 0 THEN 0 ELSE 1 END, round_num DESC  "
 
       const params = [param.store_code, param.store_code];
@@ -151,7 +159,21 @@ export class StoreRepository {
 
     }
 
-    
+    async getStatusCountList(param): Promise<any[]>{
+ 
+      const query = `select status_code, text, ifnull(count, 0)as count from( 
+        SELECT * FROM boa_reg_status)brs
+        left join 
+        (select status, count(*) as count from boa_reg_info where store_code = ? group by status)bri on brs.status_code = bri.status
+       order by status_code `
+
+      const params = [param.store_code];
+
+      return this.dbService.executeQuery(query, params);
+
+    }
+
+    //status도 이걸로
     async updateRegInfoRound(param):Promise<any[]>{
       const transactionResult = await this.dbService.executeTransaction(async (connection) => {
 
@@ -180,10 +202,38 @@ export class StoreRepository {
     return transactionResult;
   }
 
+  async updateStatus(param):Promise<any[]>{
+    const transactionResult = await this.dbService.executeTransaction(async (connection) => {
+
+      const query = 'update boa_reg_info set status = ? where '
+      const params = [param.status]
+
+
+      const paramArr = param.idList
+      let addQuery = ''
+
+      for(var i=0; i<paramArr.length; i++){
+
+        const temp = paramArr[i];
+        params.push(temp)
+        addQuery += 'id = ? '
+        if(i!=paramArr.length-1)addQuery += '||'
+
+      }
+
+
+      const result1 = await this.dbService.executeQueryForShareConnection(connection, query+addQuery, params);
+
+
+  })
+  
+   return transactionResult;
+  }
+
   async getDBManageList(param): Promise<any[]>{
 
     const resultMultiQuery = this.dbService.executeMultiQuery(async(connection)=>{
-
+      console.log(param)
 
         let query1 = "select count(*) as total from boa_reg_info bri "+
         "where store_code = ? and (last_update >= DATE_FORMAT(?, '%Y-%m-%d') and last_update <= DATE_FORMAT(? + INTERVAL 1 DAY, '%Y-%m-%d'))" 
@@ -194,6 +244,11 @@ export class StoreRepository {
         if(param.round_num && param.round_num != "all"){
           addQuery = 'and round_num = ? '
           params.push(param.round_num)
+        }
+
+        if(param.status && param.status != "all"){
+          addQuery = 'and status = ? '
+          params.push(param.status)
         }
 
         let searchQuery = ''
@@ -322,7 +377,7 @@ async getStoreRegInfo(param): Promise<any[]>{
   "COUNT(CASE WHEN DATE_FORMAT(last_update, '%Y-%m') = DATE_FORMAT(current_date() , '%Y-%m') THEN 1 ELSE NULL END) AS month_count, "+ 
   "COUNT(CASE WHEN (status = '01' OR status IS NULL) THEN 1 ELSE NULL END) AS status_01_count " +
   "FROM boa_reg_info "+
-  "where store_code = ?"
+  "where store_code = ? and status != '99'"
 
   const params = [param.store_code];
 
@@ -358,7 +413,7 @@ async getDashBoardChartDataByWeek(param): Promise<any[]>{
           CONCAT(DATE_FORMAT(last_update, '%m월 '), WEEK(last_update) - WEEK(DATE_SUB(last_update, INTERVAL DAYOFMONTH(last_update)-1 DAY))+1, '주차') AS week_label,    
           COUNT(WEEK(last_update)) AS count    
       FROM boa_reg_info    
-      WHERE store_code = ?
+      WHERE store_code = ? and status != '99'
       GROUP BY store_code, year, week_label, week_number
   ) reg_info    
   USING (year, week_number) 

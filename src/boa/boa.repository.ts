@@ -43,7 +43,7 @@ export class BoaRepository {
         "FROM "+ 
           "boa_reg_info "+
         "WHERE "+ 
-          "last_update >= DATE_FORMAT(CURDATE() - INTERVAL 1 DAY, '%Y-%m-01') "+//이번달
+          "last_update >= DATE_FORMAT(CURDATE() - INTERVAL 1 DAY, '%Y-%m-01') and status != '99' "+//이번달
         "GROUP BY  store_code)reg "+
         "using(store_code) "+ 
         "where status = 'Y' order by store_name";

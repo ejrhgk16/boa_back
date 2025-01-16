@@ -51,6 +51,13 @@ export class StoreService {
 
     }
 
+    async getStatusCountListService(param): Promise<any>{
+
+        const rows = await this.storeRepository.getStatusCountList(param)
+        return rows
+
+    }
+
     async getDBManageListService(param): Promise<any>{
 
         const [pageingDto, result] = await this.storeRepository.getDBManageList(param)
@@ -63,6 +70,13 @@ export class StoreService {
    async updateRegInfoRoundService(param): Promise<any>{
 
         const rows = await this.storeRepository.updateRegInfoRound(param)
+        return rows
+
+    }
+
+    async updateStatusService(param): Promise<any>{
+
+        const rows = await this.storeRepository.updateStatus(param)
         return rows
 
     }

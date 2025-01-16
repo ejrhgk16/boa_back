@@ -108,6 +108,27 @@ export class StoreController {
     return result
   
   }
+  @Get("/db/manage/status")
+  @UseGuards(AccessAuthGuard, RolesGuard)
+  @Roles('client', 'admin')
+  async getStatusCountList(@Query() query, @Req() req){
+
+    const result = await this.storeService.getStatusCountListService(query)
+
+    return result
+  
+  }
+
+  @Post("/db/manage/status/update")
+  @UseGuards(AccessAuthGuard, RolesGuard)
+  @Roles('client', 'admin')
+  async updateStatus(@Body() body, @Req() req){
+
+    const result = await this.storeService.updateStatusService(body)
+
+    return result
+  
+  }
 
   @Post("/db/manage/add")
   @UseGuards(AccessAuthGuard, RolesGuard)
@@ -342,6 +363,9 @@ export class StoreController {
     return result
   
   }
+
+
+
   
   
 
