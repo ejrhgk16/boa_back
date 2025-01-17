@@ -233,7 +233,6 @@ export class StoreRepository {
   async getDBManageList(param): Promise<any[]>{
 
     const resultMultiQuery = this.dbService.executeMultiQuery(async(connection)=>{
-      console.log(param)
 
         let query1 = "select count(*) as total from boa_reg_info bri "+
         "where store_code = ? and (last_update >= DATE_FORMAT(?, '%Y-%m-%d') and last_update <= DATE_FORMAT(? + INTERVAL 1 DAY, '%Y-%m-%d'))" 
@@ -516,7 +515,7 @@ async getDashBoardChartDataByMonth(param): Promise<any[]>{
 
         const pagingDto = new PagingDto(param.pageNum, result1[0].total, keyword)
 
-        const query2 = "select page_id, page_code, page_name, IFNULL(reg_count,0) as reg_count, visit_count, media_name, bp.status, event_name, bp.last_update, bp.url "+
+        const query2 = "select page_id, page_code, page_name, IFNULL(reg_count_total,0) as reg_count_total, IFNULL(reg_count_period,0) as reg_count_period,  visit_count, media_name, bp.status, event_name, bp.last_update, bp.url "+
         "FROM ( "+
         "SELECT boa_page.*, boa_media.media_name "+
             "FROM boa_page " +
@@ -524,14 +523,20 @@ async getDashBoardChartDataByMonth(param): Promise<any[]>{
         ") bp " + 
         "left join (select num, event_name from boa_event where store_code = ?) be on be.num = bp.event_num " +
         "left JOIN ( " +
-          "select page_code, count(*) as reg_count from boa_reg_info where store_code = ? group by page_code " +
+          "select page_code, count(*) as reg_count_total from boa_reg_info where store_code = ? and status != '99' group by page_code " +
         ") bri " +
+        "USING(page_code) " +
+        "left JOIN ( " +
+        "select page_code, count(*) as reg_count_period from boa_reg_info where store_code = ?  and status != '99' and (last_update >= DATE_FORMAT(?, '%Y-%m-%d') and last_update <= DATE_FORMAT(? + INTERVAL 1 DAY, '%Y-%m-%d'))  " +
+        " group by page_code " +
+        ") bri2 " +
         "USING(page_code) " +
         "order by bp.status desc, bp.last_update desc limit ?, ?" 
     
         const startrow = pagingDto.row_amount * (pagingDto.pageNum -1)
         
-        const params2 = params.concat(searchParams.concat([param.store_code, param.store_code, startrow, pagingDto.row_amount]))
+        const params2 = params.concat(searchParams.concat([param.store_code, param.store_code,  param.store_code,  param.startDate, param.endDate, startrow, pagingDto.row_amount]))
+ 
         const result2 = await this.dbService.executeQueryForShareConnection(connection, query2, params2)
 
        
