@@ -48,14 +48,17 @@ export class BoaService {
                 newResult.admin_login_id = element.admin_login_id;
                 newResult.admin_name = element.admin_name;
                 newResult.register_time = element.register_time;
+                newResult.send_phone_number = element.send_phone_number;
 
                 newResult.conn_user_list = []
             }
 
             const conn_user = {conn_user_id : element.conn_user_id, conn_user_name : element.conn_user_name}
 
-
-            newResult.conn_user_list.push(conn_user)
+            if(conn_user.conn_user_id){
+                newResult.conn_user_list.push(conn_user)
+            }
+            
             
 
         });

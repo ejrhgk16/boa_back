@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common"
+import { Panorama } from "aws-sdk";
 import { Console } from "console";
 import { DbService } from "src/common/db/db.service";
 import { PagingDto } from "src/common/paging/paging.dto";
@@ -26,7 +27,7 @@ export class StoreRepository {
 
 
             let query1 = "select count(*) as total from boa_reg_info bri "+
-            "where store_code = ? and (last_update >= DATE_FORMAT(?, '%Y-%m-%d') and last_update <= DATE_FORMAT(? + INTERVAL 1 DAY, '%Y-%m-%d'))" 
+            "where store_code = ? and status != '99' and (last_update >= DATE_FORMAT(?, '%Y-%m-%d') and last_update <= DATE_FORMAT(? + INTERVAL 1 DAY, '%Y-%m-%d'))" 
             
             let params = [param.store_code, param.startDate, param.endDate]
 
@@ -291,9 +292,9 @@ export class StoreRepository {
 
  
  async addDBRegInfoData(param): Promise<any[]>{
- 
-  const query = "insert into boa_reg_info(store_code, cust_name, cust_phone_number, memo, round_num, status) values(?,?,?,?, 0, '01')"
-  const params = [param.store_code, param.cust_name, param.cust_phone_number, param.memo];
+  // console.log(param)
+  const query = "insert into boa_reg_info(store_code, cust_name, cust_phone_number, info_data, round_num, status, page_code) values(?,?,?,?, 0, '01', ?)"
+  const params = [param.store_code, param.cust_name, param.cust_phone_number, param.info_data, param.page_code];
 
   return this.dbService.executeQuery(query, params);
 
@@ -454,7 +455,7 @@ async getDashBoardChartDataByMonth(param): Promise<any[]>{
   "UNION ALL SELECT 10 " +
   "UNION ALL SELECT 11 " +
   ") AS months " +
-  "LEFT JOIN (select * from boa_reg_info where store_code = ?)boa_reg_info "+
+  "LEFT JOIN (select * from boa_reg_info where store_code = ? and status != '99')boa_reg_info "+
   "ON DATE_FORMAT(boa_reg_info.last_update, '%Y-%m') = DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL n MONTH), '%Y-%m') " +
   "GROUP BY date " +
   "ORDER BY date " 
@@ -464,6 +465,52 @@ async getDashBoardChartDataByMonth(param): Promise<any[]>{
   return this.dbService.executeQuery(query, params);
 
 }
+
+async getDashBoardChartDataByDay(param): Promise<any[]>{
+
+  const query = "SELECT DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL n DAY), '%y/%m/%d') as date, COUNT(boa_reg_info.last_update) AS count FROM ( " +
+  "SELECT 0 AS n " + 
+  "UNION ALL SELECT 1 " +
+  "UNION ALL SELECT 2 " +
+  "UNION ALL SELECT 3 " +
+  "UNION ALL SELECT 4 " +
+  "UNION ALL SELECT 5 " +
+  "UNION ALL SELECT 6 " +
+  "UNION ALL SELECT 7 " +
+  "UNION ALL SELECT 8 " +
+  "UNION ALL SELECT 9 " +
+  "UNION ALL SELECT 10 " +
+  "UNION ALL SELECT 11 " +
+  "UNION ALL SELECT 12 " +
+  "UNION ALL SELECT 13 " +
+  "UNION ALL SELECT 14 " +
+  "UNION ALL SELECT 15 " +
+  "UNION ALL SELECT 16 " +
+  "UNION ALL SELECT 17 " +
+  "UNION ALL SELECT 18 " +
+  "UNION ALL SELECT 19 " +
+  "UNION ALL SELECT 20 " +
+  "UNION ALL SELECT 21 " +
+  "UNION ALL SELECT 22 " +
+  "UNION ALL SELECT 23 " +
+  "UNION ALL SELECT 24 " +
+  "UNION ALL SELECT 25 " +
+  "UNION ALL SELECT 26 " +
+  "UNION ALL SELECT 27 " +
+  "UNION ALL SELECT 28 " +
+  "UNION ALL SELECT 29 " +
+  ") AS months " +
+  "LEFT JOIN (select * from boa_reg_info where store_code = ? and status != '99')boa_reg_info "+
+  "ON DATE_FORMAT(boa_reg_info.last_update, '%Y-%m-%d') = DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL n DAY), '%Y-%m-%d') " +
+  "GROUP BY date " +
+  "ORDER BY date " 
+
+  const params = [param.store_code];
+
+  return this.dbService.executeQuery(query, params);
+
+}
+
 
   async getPageStatsList22222(param): Promise<any[]>{
   

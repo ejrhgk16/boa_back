@@ -12,6 +12,7 @@ import { IpBlockMiddleware } from './common/block/block.middleware';
 import { UtilModule } from './common/util/util.module';
 import { StoreModule } from './store/store.module';
 import { LandingModule } from './landing/landing.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { LandingModule } from './landing/landing.module';
       isGlobal: true,
     }),
     CacheModule.register({ isGlobal: true }),
+    
     BlockModule, AuthModule, DBModule, BoaModule, UtilModule, StoreModule, LandingModule
   ],
   controllers: [AppController],

@@ -121,8 +121,8 @@ export class BoaRepository {
 
     async getStoreDetail(param): Promise<any[]>{
  
-      const query = "select bs.store_code, bs.store_name, bs.status, bs.client_type_id, bu.user_name as admin_name, bs.admin_login_id, bus.user_login_id as conn_user_id,bus.user_name as conn_user_name,  bs.register_time, bs.last_update from boa_store bs "+
-      "join boa_user bu on bs.admin_login_id = bu.user_login_id "+ 
+      const query = "select bs.store_code, bs.store_name, bs.status, bs.client_type_id, bu.user_name as admin_name, bs.admin_login_id, bus.user_login_id as conn_user_id,bus.user_name as conn_user_name,  bs.register_time, bs.last_update, bs.send_phone_number from boa_store bs "+
+      "left join boa_user bu on bs.admin_login_id = bu.user_login_id "+ 
       "left join (select boa_user.user_login_id,boa_user.user_name, boa_user_store.store_code from boa_user_store join boa_user on boa_user_store.user_login_id = boa_user.user_login_id) bus on bs.store_code = bus.store_code "+ 
       "where bs.store_code = ?"
       
@@ -135,8 +135,8 @@ export class BoaRepository {
     async addClientStore(body){
  
       const transactionResult = await this.dbService.executeTransaction(async (connection) => {
-        const query = 'insert into boa_store(store_name, status, admin_login_id, client_type_id, store_code) values(?,?,?,?,?)'
-        const params = [body.store_name, body.status, body.admin_login_id, body.client_type_id, body.store_code]
+        const query = 'insert into boa_store(store_name, status, admin_login_id, client_type_id, store_code, send_phone_number) values(?,?,?,?,?,?)'
+        const params = [body.store_name, body.status, body.admin_login_id, body.client_type_id, body.store_code, body.send_phone_number]
         const result1 = await this.dbService.executeQueryForShareConnection(connection, query, params);
 
         const query2 = 'insert into boa_user_store(user_login_id, store_code) values '
@@ -171,10 +171,11 @@ export class BoaRepository {
 
 
     async updateStoreDetail(body){
+      console.log(body)
 
       const transactionResult = await this.dbService.executeTransaction(async (connection) => {
-          const query = 'update boa_store set store_name = ?, status=?, admin_login_id=?, client_type_id=? where store_code = ?'
-          const params = [body.store_name, body.status, body.admin_login_id, body.client_type_id, body.store_code]
+          const query = 'update boa_store set store_name = ?, status=?, admin_login_id=?, client_type_id=?, send_phone_number=? where store_code = ?'
+          const params = [body.store_name, body.status, body.admin_login_id, body.client_type_id, body.send_phone_number, body.store_code]
           const result1 = await this.dbService.executeQueryForShareConnection(connection, query, params);
 
           const query2 = 'delete from boa_user_store where store_code = ?'
@@ -185,9 +186,8 @@ export class BoaRepository {
   
           var valueQuery ='' 
           var params3 = []
-
           const paramArr = body.conn_user_list
-
+          console.log(paramArr)
           if(paramArr.length == 0){
             return {msg : "등록성공 ::: !", code:"success"}
           }
@@ -206,7 +206,6 @@ export class BoaRepository {
           }
 
           const result23 = await this.dbService.executeQueryForShareConnection(connection, query3+valueQuery, params3);
-  
       })
   
       return transactionResult;

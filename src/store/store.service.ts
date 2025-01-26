@@ -114,8 +114,12 @@ export class StoreService {
 
         if(param.type == "month"){
             return await this.storeRepository.getDashBoardChartDataByMonth(param);            
-        }else{
+        } 
+        if(param.type == "week"){
             return await this.storeRepository.getDashBoardChartDataByWeek(param);
+        }
+        if(param.type == "day"){
+            return await this.storeRepository.getDashBoardChartDataByDay(param);
         }
     }
 

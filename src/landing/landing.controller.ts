@@ -59,4 +59,13 @@ export class LandingController {
   
   }
 
+  @Get("/reginfo/add")//zapier용 등록
+  async add_(@Query() query, @Req() req){
+
+    const result = await this.landingService.updateCountService(query)
+
+    return result
+  
+  }
+
 }

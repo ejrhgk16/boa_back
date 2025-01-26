@@ -191,5 +191,15 @@ export class LandingRepository {
     
       }
 
+      async getStoreRecieverList(param){
+
+        const query = 'select * from boa_store where store_code = ?'
+        const params = [param.store_code]
+        const result1 = await this.dbService.executeQuery(query, params);
+        return result1
+    
+      }
+
+
     
 }
