@@ -25,7 +25,7 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'access') {
 
 
         //validate 함수는 JWT 토큰이 유효하고 서명이 검증된 후에 호출됩니다. 이 함수는 JWT 페이로드를 기반으로 사용자 정보를 추가로 검증하거나 데이터를 조회하는 역할을 합니다.
-         const rows = await this.authRepository.getUserStoreList(payload.user_login_id);
+         const rows = await this.authRepository.getUserStoreList(payload.user_login_id); // storeList가 길어질수있어서 이런식으로 db매번조회하는식으로하는게 jwt토큰에 삽입하는것보다 나을거 같음
          var user : Record<string, any> = {};
          if(payload instanceof Object){
           user = payload;

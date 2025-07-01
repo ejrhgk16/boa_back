@@ -66,6 +66,7 @@ export class AuthRepository {
     async getUserInfoAndRefreshToken(param){
         const query = 'select bubr.user_login_id, role_name, role_type, auth_refresh_token from (select user_login_id,boa_role.role_name , boa_role.role_type from boa_user join boa_role on boa_user.role_id = boa_role.role_id where user_login_id = ?) bubr join boa_auth au on bubr.user_login_id = au.user_login_id where auth_refresh_token = ?';
         const params = [param.user_login_id, param.refresh_token]
+        
         return this.dbService.executeQuery(query, params);
     }
 

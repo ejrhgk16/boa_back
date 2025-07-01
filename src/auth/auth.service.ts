@@ -96,7 +96,7 @@ export class AuthService {
 
             const refreshVertify = this.jwtService.verify(refresh_token, { secret: this.configService.get<string>('BOA_REFRESH_SECRET')})
 
-            // console.log("refreshToken 새롭게 생성후")
+             console.log("refreshToken 새롭게 생성후")
 
             params.refresh_token = refresh_token
             await this.authRepository.deleteTokenAndinsertToeknIntransaction(params)
