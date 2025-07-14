@@ -197,7 +197,7 @@ export class BoaController {
 
   @Get("/etc/media/list")
   @UseGuards(AccessAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles('admin', 'client')
   async mediaList(@Query() query, @Res({passthrough : true}) res : Response, @Req() req){
 
     //const param = {role_name : 'master'}

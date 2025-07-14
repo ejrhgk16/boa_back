@@ -31,7 +31,12 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'access') {
           user = payload;
           user.store_code_arr = rows
          }
+
+         const rows2 = await this.authRepository.getMenuList(payload);
+         user.menuList = rows2
+         //role_name으로 role_menu 리스트를 가져오고 user.menu_list에 넣자 getMenuList이걸로 가져오면될듯 role gaurd에서 코드값을 대체하고 비교해야하면될듯
          
+        //  console.log("user ::: ", user);
 
          return done(null, user, '');
 
